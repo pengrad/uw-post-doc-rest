@@ -11,6 +11,12 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.gson.JsonElement;
+
+import retrofit.Callback;
+import retrofit.RetrofitError;
+import retrofit.client.Response;
+
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
     public static final String IS_LOGIN = "isLogin";
@@ -26,10 +32,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private View mLayoutRes;
     private boolean isLogin;
 
+    private ApiManager.Api api;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        api = ApiManager.createApi();
 
         mLayoutLogin = findViewById(R.id.layoutLogin);
         mLayoutRes = findViewById(R.id.layoutResult);
@@ -48,7 +58,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         isLogin = preferences.getBoolean(IS_LOGIN, false);
         mLogin = preferences.getString(LOGIN, "");
         String pass = preferences.getString(PASS, "");
-
 
         processLogin(isLogin, mLogin, pass, false);
 
@@ -79,6 +88,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             } else {
                 updateShareStatus("Uploading some " + fileType + " to API");
             }
+
+            api.sendData("file", new Callback<JsonElement>() {
+                @Override
+                public void success(JsonElement jsonElement, Response response) {
+                    updateShareStatus(mTextStatus.getText() + "\nResponse: " + jsonElement.toString());
+                }
+
+                @Override
+                public void failure(RetrofitError error) {
+                    updateShareStatus(mTextStatus.getText() + "\nResponse: error occurred");
+                }
+            });
         }
     }
 
